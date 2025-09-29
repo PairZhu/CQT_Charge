@@ -45,7 +45,7 @@ async def qq_bot_server():
                                         "type": "at",
                                         "data": {"qq": user_id},
                                     },
-                                    {"type": "text", "data": {"text": msg}},
+                                    {"type": "text", "data": {"text": "\n" + msg}},
                                 ],
                             },
                         }
