@@ -32,6 +32,27 @@ async def qq_bot_server():
                 )
             )
 
+        def send_group_private_msg(user_id: int, msg: str):
+            asyncio.create_task(
+                ws.send(
+                    json.dumps(
+                        {
+                            "action": "send_group_msg",
+                            "params": {
+                                "group_id": int(os.getenv("WORK_GROUP")),
+                                "message": [
+                                    {
+                                        "type": "at",
+                                        "data": {"qq": user_id},
+                                    },
+                                    {"type": "text", "data": {"text": msg}},
+                                ],
+                            },
+                        }
+                    )
+                )
+            )
+
         def on_error(e: Exception, msg: str):
             send_private_msg(
                 int(os.getenv("MASTER_QQ")),
@@ -51,7 +72,7 @@ async def qq_bot_server():
             on_warning=on_warning,
         )
 
-        robot = ChargeRobot(charge_listener, send_private_msg)
+        robot = ChargeRobot(charge_listener, send_group_private_msg)
         logger.info("ChargeRobot started")
         send_private_msg(
             int(os.getenv("MASTER_QQ")),
@@ -60,7 +81,10 @@ async def qq_bot_server():
 
         async for ws_message in ws:
             message_data = json.loads(ws_message)
-            if message_data.get("message_type") == "private":
+            if message_data.get("message_type") == "group":
+                group_id: int = message_data["group_id"]
+                if group_id != int(os.getenv("WORK_GROUP")):
+                    continue
                 user_id: int = message_data["user_id"]
                 message: str = message_data["raw_message"]
                 robot.handle_message(user_id, message)

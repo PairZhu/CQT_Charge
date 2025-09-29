@@ -18,6 +18,7 @@
    - `QQ_TOKEN`: QQ机器人的API令牌
    - `ROBOT_WS_URL`: QQ机器人的WebSocket URL
    - `MASTER_QQ`: 管理员QQ号
+   - `WORK_GROUP`: 机器人工作的QQ群号
 4. 运行程序
    ```bash
    uv run main.py
