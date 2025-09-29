@@ -110,7 +110,7 @@ class ChargeListener:
             while True:
                 if not self.hooks[station_id]:
                     break
-                logger.info(f"Polling station {station_id}")
+                logger.debug(f"Polling station {station_id}")
                 try:
                     data = await self.client_controller.get_station_info(station_id)
                 except Exception as e:
