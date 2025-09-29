@@ -16,6 +16,7 @@ class ChargeRobot:
     HELP_CMD = "help"
 
     MAX_THRESHOLD = 4  # 最大空闲数量阈值
+    MAX_EXPIRE_MINUTES = 60 * 24  # 最大订阅时间，单位分钟
 
     def __init__(
         self, listener: ChargeListener, send_message: Callable[[int, str], None]
@@ -78,11 +79,7 @@ class ChargeRobot:
                     )
                     self.remove_subscriber(user_id, station_name)
                     return True  # 结束订阅
-            if (
-                expire_in_minutes > 0
-                and asyncio.get_event_loop().time()
-                >= start_time + expire_in_minutes * 60
-            ):
+            if asyncio.get_event_loop().time() >= start_time + expire_in_minutes * 60:
                 self.send_message(
                     user_id,
                     f"充电桩 '{station_name}' 订阅时长已到期，本次订阅结束！\n如需继续订阅请重新添加",
@@ -92,14 +89,10 @@ class ChargeRobot:
 
         self.user_hooks[user_id][station_name] = hook
         self.listener.register_hook(station_name, hook)
-        if expire_in_minutes > 0:
-            expire_message = f"在 {expire_in_minutes} 分钟后订阅将自动取消。\n"
-        else:
-            expire_message = ""
 
         self.send_message(
             user_id,
-            f"已为您添加充电桩 '{station_name}' 的订阅！\n{expire_message}当空闲充电位数量达到 {threshold} 个时会通知您。\n如需取消订阅请输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} {station_name}'",
+            f"已为您添加充电桩 '{station_name}' 的订阅！\n当空闲充电位数量达到 {threshold} 个时会通知您，并在空闲充电位数量变化时再次通知您直到空闲充电位数量变为0。\n在 {expire_in_minutes} 分钟后订阅将自动取消。\n输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} {station_name}' 可手动取消订阅",
         )
 
     def remove_subscriber(self, user_id: int, station_name: str):
@@ -153,7 +146,7 @@ class ChargeRobot:
             "充电桩订阅机器人使用帮助：\n"
             f"- 输入 '{self.CMD_PREFIX}{self.LIST_CMD}' 查看可用充电桩列表\n"
             f"- 输入 '{self.CMD_PREFIX}{self.PS_CMD}' 查看当前已订阅的充电桩列表\n"
-            f"- 输入 '{self.CMD_PREFIX}{self.SUB_CMD} <充电桩名称> [持续时间(单位：分钟，默认不填表示不限时)] [空闲数量阈值(默认1)]' 添加充电桩订阅，例如：'{self.CMD_PREFIX}{self.SUB_CMD} 充电桩A 60 2' 表示订阅'充电桩A'，当空闲数量达到2个时通知我，订阅持续时间为60分钟\n"
+            f"- 输入 '{self.CMD_PREFIX}{self.SUB_CMD} <充电桩名称> [持续时间(单位：分钟，默认24小时)] [空闲数量阈值(默认1)]' 添加充电桩订阅，例如：'{self.CMD_PREFIX}{self.SUB_CMD} 充电桩A 60 2' 表示订阅'充电桩A'，当空闲数量达到2个时通知我，订阅持续时间为60分钟\n"
             f"- 输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} <充电桩名称>' 取消充电桩订阅，例如：'{self.CMD_PREFIX}{self.UNSUB_CMD} 充电桩A'\n"
             f"- 输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看本帮助信息\n"
         )
@@ -182,11 +175,19 @@ class ChargeRobot:
                     )
                     return
                 try:
-                    expire_in_minutes = int(args.pop(0)) if args else -1
+                    expire_in_minutes = (
+                        int(args.pop(0)) if args else self.MAX_EXPIRE_MINUTES
+                    )
                 except ValueError:
                     self.send_message(
                         user_id,
                         "持续时间参数必须是整数，单位为分钟！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
+                    )
+                    return
+                if not (1 <= expire_in_minutes <= self.MAX_EXPIRE_MINUTES):
+                    self.send_message(
+                        user_id,
+                        f"持续时间必须在 1 到 {self.MAX_EXPIRE_MINUTES} 分钟之间！",
                     )
                     return
                 try:
