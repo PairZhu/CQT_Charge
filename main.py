@@ -1,0 +1,74 @@
+import json
+import websockets
+import asyncio
+import dotenv
+import os
+import logging
+
+from bot import ChargeRobot
+from listener import ChargeListener
+
+logger = logging.getLogger(__name__)
+dotenv.load_dotenv()
+
+
+async def main():
+    async with websockets.connect(
+        uri=os.getenv("ROBOT_WS_URL"),
+        additional_headers={"Authorization": f"Bearer {os.getenv('QQ_TOKEN')}"},
+    ) as ws:
+
+        def send_private_msg(user_id: int, msg: str):
+            asyncio.create_task(
+                ws.send(
+                    json.dumps(
+                        {
+                            "action": "send_private_msg",
+                            "params": {
+                                "user_id": user_id,
+                                "message": [{"type": "text", "data": {"text": msg}}],
+                            },
+                        }
+                    )
+                )
+            )
+
+        def on_error(e: Exception, msg: str):
+            send_private_msg(
+                int(os.getenv("MASTER_QQ")),
+                f"ChargeListener错误: {msg}\n--------\n{e}",
+            )
+
+        def on_warning(msg: str):
+            send_private_msg(int(os.getenv("MASTER_QQ")), f"ChargeListener警告: {msg}")
+
+        charge_listener = await ChargeListener.create(
+            host=os.getenv("CQT_HOST"),
+            openid=os.getenv("OPEN_ID"),
+            phonenumber=os.getenv("PHONENUMBER"),
+            longitude=os.getenv("LONGITUDE"),
+            latitude=os.getenv("LATITUDE"),
+            on_error=on_error,
+            on_warning=on_warning,
+        )
+
+        robot = ChargeRobot(charge_listener, send_private_msg)
+        logger.info("ChargeRobot started")
+
+        try:
+            async for ws_message in ws:
+                message_data = json.loads(ws_message)
+                if message_data.get("message_type") == "private":
+                    user_id: int = message_data["user_id"]
+                    message: str = message_data["raw_message"]
+                    robot.handle_message(user_id, message)
+        except Exception as e:
+            logger.error(f"Main loop error: {e}")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    asyncio.run(main())

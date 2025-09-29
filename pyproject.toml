@@ -1,0 +1,7 @@
+[project]
+name = "cqt-charge"
+version = "0.1.0"
+description = "A bot for monitoring CQT electric vehicle charging stations."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["aiohttp>=3.12.15", "dotenv>=0.9.9", "websockets>=15.0.1"]
