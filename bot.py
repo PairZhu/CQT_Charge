@@ -77,7 +77,7 @@ class ChargeRobot:
                         user_id,
                         f"充电桩 '{station_name}' 充电位已满，本次订阅结束！\n如需继续订阅请重新添加",
                     )
-                    self.remove_subscriber(user_id, station_name)
+                    self.remove_subscriber(user_id, station_name, echo=False)
                     return True  # 结束订阅
             if asyncio.get_event_loop().time() >= start_time + expire_in_minutes * 60:
                 self.send_message(
@@ -95,23 +95,25 @@ class ChargeRobot:
             f"已为您添加充电桩 '{station_name}' 的订阅！\n当空闲充电位数量达到 {threshold} 个时会通知您，并在空闲充电位数量变化时再次通知您直到空闲充电位数量变为0。\n在 {expire_in_minutes} 分钟后订阅将自动取消。\n输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} {station_name}' 可手动取消订阅",
         )
 
-    def remove_subscriber(self, user_id: int, station_name: str):
+    def remove_subscriber(self, user_id: int, station_name: str, echo: bool = True):
         if user_id not in self.user_hooks:
-            self.send_message(
-                user_id,
-                "您当前没有任何充电桩订阅！",
-            )
+            if echo:
+                self.send_message(
+                    user_id,
+                    "您当前没有任何充电桩订阅！",
+                )
             return
         if station_name in self.user_hooks[user_id]:
             self.listener.unregister_hook(
                 station_name, self.user_hooks[user_id][station_name]
             )
             del self.user_hooks[user_id][station_name]
-            self.send_message(
-                user_id,
-                f"已为您取消充电桩 '{station_name}' 的订阅！",
-            )
-        else:
+            if echo:
+                self.send_message(
+                    user_id,
+                    f"已为您取消充电桩 '{station_name}' 的订阅！",
+                )
+        elif echo:
             self.send_message(
                 user_id,
                 f"您当前没有订阅充电桩 '{station_name}' ！",
