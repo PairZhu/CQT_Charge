@@ -37,11 +37,11 @@ class ChargeListener:
         self.hooks: dict[int, list[ChargeListener.HOOK_CALLBACK_TYPE]] = {
             station_id: [] for station_id in stations.values()
         }
+        self.on_error = on_error
+        self.on_warning = on_warning
         self.locks: dict[int, asyncio.Lock] = {
             station_id: asyncio.Lock() for station_id in stations.values()
         }
-        self.on_error = on_error
-        self.on_warning = on_warning
 
     @classmethod
     async def create(
