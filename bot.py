@@ -4,6 +4,7 @@ import os
 from typing import Callable
 import asyncio
 import logging
+import time
 
 from listener import ChargeListener
 
@@ -147,7 +148,7 @@ class ChargeRobot:
                     self.remove_subscriber(user_id, station_name, echo=False)
                     return True  # 结束订阅
             if (
-                asyncio.get_event_loop().time()
+                time.time()
                 >= subscriber_data.created_at + subscriber_data.expire_in_minutes * 60
             ):
                 self.send_message(
@@ -285,7 +286,7 @@ class ChargeRobot:
                     user_id,
                     subscriber_data=self.SubscriberData(
                         station_name=station_name,
-                        created_at=asyncio.get_event_loop().time(),
+                        created_at=time.time(),
                         expire_in_minutes=expire_in_minutes,
                         threshold=threshold,
                     ),
