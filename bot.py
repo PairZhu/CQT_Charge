@@ -22,7 +22,7 @@ class ChargeRobot:
     MAX_THRESHOLD = 5  # 最大空闲数量阈值
     MAX_EXPIRE_MINUTES = 60 * 24  # 最大订阅时间，单位分钟
 
-    DATA_SAVE_INTERVAL = 60  # 用户数据保存间隔，单位秒
+    DATA_SAVE_INTERVAL = 10  # 用户数据保存间隔，单位秒
     DATA_FILE = "user_config.json"
 
     @dataclass

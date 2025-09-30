@@ -15,7 +15,7 @@ class ChargeListener:
         data: list
         time: float
 
-    POLL_INTERVAL = 20  # 轮询间隔，单位秒
+    POLL_INTERVAL = 30  # 轮询间隔，单位秒
     EXPIRE_TIME = 60  # 数据过期时间，单位秒
 
     HOOK_CALLBACK_TYPE = (
