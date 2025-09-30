@@ -3,6 +3,7 @@ from typing import Callable
 from client import ChargeClient, ChargeClientController
 from dataclasses import dataclass
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -110,11 +111,10 @@ class ChargeListener:
             while True:
                 if not self.hooks[station_id]:
                     break
-                logger.debug(f"Polling station {station_id}")
                 try:
                     data = await self.client_controller.get_station_info(station_id)
                 except Exception as e:
-                    err_msg = f"Error polling station {station_id}: {e}"
+                    err_msg = f"Error polling station {station_id}: {e}\n{traceback.format_exc()}"
                     logger.error(err_msg)
                     if self.on_error:
                         self.on_error(e, err_msg)
