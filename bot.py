@@ -18,6 +18,7 @@ class ChargeRobot:
     SUB_CMD = "sub"
     UNSUB_CMD = "stop"
     HELP_CMD = "help"
+    CLEAR_CMD = "clear"
 
     MAX_THRESHOLD = 5  # 最大空闲数量阈值
     MAX_EXPIRE_MINUTES = 60 * 24  # 最大订阅时间，单位分钟
@@ -197,6 +198,22 @@ class ChargeRobot:
         if not self.user_data[user_id]:
             del self.user_data[user_id]
 
+    def clear_subscribers(self, user_id: int):
+        if user_id not in self.user_data:
+            self.send_message(
+                user_id,
+                "您当前没有任何充电桩订阅！",
+            )
+            return
+        user_listening_stations = list(self.user_data[user_id].keys())
+        for station_name in user_listening_stations:
+            self.remove_subscriber(user_id, station_name, echo=False)
+        del self.user_data[user_id]
+        self.send_message(
+            user_id,
+            f"已为您取消所有充电桩订阅：{', '.join(user_listening_stations)}",
+        )
+
     def list_stations(self, user_id: int):
         stations = list(self.listener.stations.keys())
         if not stations:
@@ -228,6 +245,7 @@ class ChargeRobot:
             f"- 输入 '{self.CMD_PREFIX}{self.PS_CMD}' 查看当前已订阅的充电桩列表\n"
             f"- 输入 '{self.CMD_PREFIX}{self.SUB_CMD} <充电桩名称> [持续时间(单位：分钟，默认24小时)] [空闲数量阈值(默认1)]' 添加充电桩订阅，例如：'{self.CMD_PREFIX}{self.SUB_CMD} 充电桩A 60 2' 表示订阅'充电桩A'，当空闲数量达到2个时通知我，订阅持续时间为60分钟\n"
             f"- 输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} <充电桩名称>' 取消充电桩订阅，例如：'{self.CMD_PREFIX}{self.UNSUB_CMD} 充电桩A'\n"
+            f"- 输入 '{self.CMD_PREFIX}{self.CLEAR_CMD}' 取消所有充电桩订阅\n"
             f"- 输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看本帮助信息\n"
         )
         self.send_message(user_id, msg)
@@ -302,6 +320,8 @@ class ChargeRobot:
                     )
                     return
                 self.remove_subscriber(user_id, station_name)
+            case self.CLEAR_CMD:
+                self.clear_subscribers(user_id)
             case self.HELP_CMD:
                 self.help(user_id)
             case _:
