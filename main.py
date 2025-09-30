@@ -100,16 +100,12 @@ def main():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    async def loop():
-        while True:
-            try:
-                await qq_bot_server()
-            except Exception as e:
-                logger.error(f"qq_bot_server error: {e}")
-            logger.info("Reconnecting to qq_bot_server in 15 seconds...")
-            await asyncio.sleep(15)
-
-    asyncio.run(loop())
+    while True:
+        try:
+            asyncio.run(qq_bot_server())
+        except Exception as e:
+            logger.error(f"qq_bot_server error: {e}")
+        logger.info("Reconnecting to qq_bot_server")
 
 
 if __name__ == "__main__":
