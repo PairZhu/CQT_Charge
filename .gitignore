@@ -11,3 +11,4 @@ wheels/
 
 # Environment variables file
 .env
+user_config.json
