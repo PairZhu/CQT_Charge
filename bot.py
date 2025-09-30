@@ -15,7 +15,7 @@ class ChargeRobot:
     UNSUB_CMD = "stop"
     HELP_CMD = "help"
 
-    MAX_THRESHOLD = 4  # 最大空闲数量阈值
+    MAX_THRESHOLD = 5  # 最大空闲数量阈值
     MAX_EXPIRE_MINUTES = 60 * 24  # 最大订阅时间，单位分钟
 
     def __init__(
