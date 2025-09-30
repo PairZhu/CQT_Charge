@@ -1,6 +1,8 @@
 import aiohttp
 import asyncio
+import logging
 
+logger = logging.getLogger(__name__)
 
 class ChargeClient:
     def __init__(self, host, openid, phonenumber):
@@ -27,8 +29,12 @@ class ChargeClient:
             raise Exception("Not logged in")
         url = f"{self.host}/api/ChargeStation/boxpiles?stationId={station_id}"
         async with self.session.get(url) as response:
+            if response.status != 200:
+                raise Exception(f"Error fetching station info: {response.status}")
             resp = await response.json()
-        data = resp.get("data", [])
+        data = resp["data"]
+        if not data:
+            raise ValueError(f"No data fund in json response: {resp}")
         # 合并为一个列表
         result = [pile for box in data for pile in box.get("piles", [])]
         return result
@@ -51,13 +57,15 @@ class ChargeClient:
 # 控制请求频率、控制登录时机
 class ChargeClientController:
     RELOGIN_INTERVAL = 24 * 60 * 60  # 24小时重新登录一次
-    MIN_REQUEST_INTERVAL = 2  # 最小请求间隔，单位秒
+    MIN_REQUEST_INTERVAL = 3  # 最小请求间隔，单位秒
     MAX_REQUESTS_PER_MINUTE = 15  # 每分钟最大请求数
 
     def __init__(self, client: ChargeClient):
         self.client = client
         self.login_time = -self.RELOGIN_INTERVAL
         self.request_times = []  # 滑动窗口记录请求时间
+        self.error_count = 0
+        self.lock = asyncio.Lock()
 
     async def ensure_login(self):
         if not self.client.token:
@@ -71,31 +79,39 @@ class ChargeClientController:
             return
 
     async def ensure_rate_limit(self):
-        current_time = asyncio.get_event_loop().time()
-        # 移除一分钟前的请求时间
-        self.request_times = [t for t in self.request_times if current_time - t < 60]
-        if len(self.request_times) >= self.MAX_REQUESTS_PER_MINUTE:
-            wait_time = 60 - (current_time - self.request_times[0])
-            await asyncio.sleep(wait_time)
-        # 确保最小请求间隔
-        if (
-            self.request_times
-            and current_time - self.request_times[-1] < self.MIN_REQUEST_INTERVAL
-        ):
-            await asyncio.sleep(
-                self.MIN_REQUEST_INTERVAL - (current_time - self.request_times[-1])
-            )
-        self.request_times.append(current_time)
+        async with self.lock:
+            current_time = asyncio.get_event_loop().time()
+            # 移除一分钟前的请求时间
+            self.request_times = [
+                t for t in self.request_times if current_time - t < 60
+            ]
+            if len(self.request_times) >= self.MAX_REQUESTS_PER_MINUTE:
+                wait_time = 60 - (current_time - self.request_times[0])
+                await asyncio.sleep(wait_time)
+            # 确保最小请求间隔
+            if self.request_times:
+                latest_request_time = self.request_times[-1]
+                elapsed = current_time - latest_request_time
+                print(f"Elapsed since last request: {elapsed} seconds")
+                if elapsed < self.MIN_REQUEST_INTERVAL:
+                    await asyncio.sleep(self.MIN_REQUEST_INTERVAL - elapsed)
+            current_time = asyncio.get_event_loop().time()
+            self.request_times.append(current_time)
 
     async def get_station_info(self, station_id):
-        await self.ensure_login()
         await self.ensure_rate_limit()
+        await self.ensure_login()
         try:
-            return await self.client.get_station_info(station_id)
+            logger.info(f"Fetching station info for station_id: {station_id}")
+            data = await self.client.get_station_info(station_id)
+            self.error_count = 0
+            return data
         except Exception:
-            # 发生错误时尝试重新登录一次
-            await self.client.login()
-            return await self.client.get_station_info(station_id)
+            self.error_count += 1
+            if self.error_count >= 5:
+                logger.error("Multiple consecutive errors, forcing re-login")
+                self.client.token = None  # 强制重新登录
+            raise
 
     async def get_stations(self, longitude, latitude):
         await self.ensure_login()
