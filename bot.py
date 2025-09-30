@@ -107,15 +107,13 @@ class ChargeRobot:
             )
             return
 
-        if self.user_hooks.setdefault(user_id, {}).get(station_name):
-            self.send_message(
-                user_id,
-                f"您当前已订阅充电桩 '{station_name}' ，请勿重复订阅！\n如需取消订阅请输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} {station_name}'",
-            )
-            return
-
-        start_time = asyncio.get_event_loop().time()
-        triggered = False
+        if self.user_data.setdefault(user_id, {}).get(station_name):
+            self.remove_subscriber(user_id, station_name, echo=False)
+            if echo:
+                self.send_message(
+                    user_id,
+                    f"检测到您已订阅充电桩 '{station_name}'，已为您取消之前的订阅，正在为您重新添加新的订阅...",
+                )
 
         async def hook(data: list, prev_data: list | None = None):
             nonlocal subscriber_data
