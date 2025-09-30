@@ -31,6 +31,7 @@ class ChargeRobot:
         created_at: float
         expire_in_minutes: int
         threshold: int
+        latest_free_count: int = 0
         triggered: bool = False
         hook: ChargeListener.HOOK_CALLBACK_TYPE | None = None
 
@@ -40,6 +41,7 @@ class ChargeRobot:
                 "created_at": self.created_at,
                 "expire_in_minutes": self.expire_in_minutes,
                 "threshold": self.threshold,
+                "latest_free_count": self.latest_free_count,
                 "triggered": self.triggered,
             }
 
@@ -89,7 +91,8 @@ class ChargeRobot:
                         created_at=sub_data["created_at"],
                         expire_in_minutes=sub_data["expire_in_minutes"],
                         threshold=sub_data["threshold"],
-                        triggered=sub_data["triggered"],
+                        triggered=sub_data.get("triggered", False),
+                        latest_free_count=sub_data.get("latest_free_count", 0),
                     )
                     self.add_subscriber(int(user_id), sub_data_obj, echo=False)
         logger.info(f"已加载共 {len(self.user_data)} 位用户的订阅数据")
@@ -116,15 +119,14 @@ class ChargeRobot:
                     f"检测到您已订阅充电桩 '{station_name}'，已为您取消之前的订阅，正在为您重新添加新的订阅...",
                 )
 
-        async def hook(data: list, prev_data: list | None = None):
+        async def hook(data: list):
             nonlocal subscriber_data
             station_name = subscriber_data.station_name
             current_free_counter = len(
                 list(filter(lambda x: x["showStatusString"] == "空闲", data))
             )
-            prev_free_counter = len(
-                list(filter(lambda x: x["showStatusString"] == "空闲", prev_data or []))
-            )
+            prev_free_counter = subscriber_data.latest_free_count
+            subscriber_data.latest_free_count = current_free_counter
 
             if not subscriber_data.triggered:
                 if current_free_counter >= subscriber_data.threshold:
