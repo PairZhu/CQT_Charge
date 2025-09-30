@@ -89,6 +89,10 @@ async def qq_bot_server():
                 message: str = message_data["raw_message"]
                 robot.handle_message(user_id, message)
 
+        # 保存用户数据
+        robot.save_user_data()
+        logger.info("ChargeRobot stopped")
+
 
 def main():
     logging.basicConfig(

@@ -57,7 +57,7 @@ class ChargeClient:
 # 控制请求频率、控制登录时机
 class ChargeClientController:
     RELOGIN_INTERVAL = 24 * 60 * 60  # 24小时重新登录一次
-    MIN_REQUEST_INTERVAL = 3  # 最小请求间隔，单位秒
+    MIN_REQUEST_INTERVAL = 5  # 最小请求间隔，单位秒
     MAX_REQUESTS_PER_MINUTE = 15  # 每分钟最大请求数
 
     def __init__(self, client: ChargeClient):
