@@ -10,11 +10,11 @@
    uv sync
    ```
 3. 设置环境变量(可使用`.env`文件)
-   - `CQT_HOST`: 常青藤充电桩API的主机地址
-   - `OPEN_ID`: 用户的OpenID
-   - `PHONENUMBER`: 用户的手机号
-   - `LONGITUDE`: 用户所在位置的经度
-   - `LATITUDE`: 用户所在位置的纬度
+   - `CQT_HOST`: 常青藤小程序接口的API地址，一般为`https://m.sgdq123.com:8601`
+   - `OPEN_ID`: 用户的OpenID，通过常青藤小程序抓包获取
+   - `PHONENUMBER`: 用户的手机号，用于登录常青藤小程序的手机号
+   - `LONGITUDE`: 用户所在位置的经度（充电桩附近）
+   - `LATITUDE`: 用户所在位置的纬度（充电桩附近）
    - `QQ_TOKEN`: QQ机器人的API令牌
    - `ROBOT_WS_URL`: QQ机器人的WebSocket URL
    - `MASTER_QQ`: 管理员QQ号
