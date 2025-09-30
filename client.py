@@ -90,7 +90,12 @@ class ChargeClientController:
     async def get_station_info(self, station_id):
         await self.ensure_login()
         await self.ensure_rate_limit()
-        return await self.client.get_station_info(station_id)
+        try:
+            return await self.client.get_station_info(station_id)
+        except Exception:
+            # 发生错误时尝试重新登录一次
+            await self.client.login()
+            return await self.client.get_station_info(station_id)
 
     async def get_stations(self, longitude, latitude):
         await self.ensure_login()
