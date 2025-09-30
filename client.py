@@ -92,7 +92,6 @@ class ChargeClientController:
             if self.request_times:
                 latest_request_time = self.request_times[-1]
                 elapsed = current_time - latest_request_time
-                print(f"Elapsed since last request: {elapsed} seconds")
                 if elapsed < self.MIN_REQUEST_INTERVAL:
                     await asyncio.sleep(self.MIN_REQUEST_INTERVAL - elapsed)
             current_time = asyncio.get_event_loop().time()
