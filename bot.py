@@ -278,7 +278,7 @@ class ChargeRobot:
                 except ValueError:
                     self.send_message(
                         user_id,
-                        "持续时间参数必须是整数，单位为分钟！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
+                        f"持续时间参数必须是整数，单位为分钟！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
                     )
                     return
                 if not (1 <= expire_in_minutes <= self.MAX_EXPIRE_MINUTES):
@@ -292,7 +292,7 @@ class ChargeRobot:
                 except ValueError:
                     self.send_message(
                         user_id,
-                        "空闲数量阈值参数必须是整数！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
+                        f"空闲数量阈值参数必须是整数！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
                     )
                     return
                 if not (1 <= threshold <= self.MAX_THRESHOLD):
