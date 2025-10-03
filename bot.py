@@ -163,7 +163,7 @@ class ChargeRobot:
             return False
 
         subscriber_data.hook = hook
-        self.user_data[user_id][station_name] = subscriber_data
+        self.user_data.setdefault(user_id, {})[station_name] = subscriber_data
         self.listener.register_hook(station_name, hook)
 
         if echo:
