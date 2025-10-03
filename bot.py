@@ -208,7 +208,6 @@ class ChargeRobot:
         user_listening_stations = list(self.user_data[user_id].keys())
         for station_name in user_listening_stations:
             self.remove_subscriber(user_id, station_name, echo=False)
-        del self.user_data[user_id]
         self.send_message(
             user_id,
             f"已为您取消所有充电桩订阅：{', '.join(user_listening_stations)}",
