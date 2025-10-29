@@ -59,7 +59,8 @@ class ChargeListener:
             client = ChargeClient(host, openid, phonenumber)
             client_controller = ChargeClientController(client)
         stations = await client_controller.get_stations(longitude, latitude)
-        listener = cls(client_controller, stations, **kwargs)
+        station_ids = {name: info["id"] for name, info in stations.items()}
+        listener = cls(client_controller, station_ids, **kwargs)
         return listener
 
     async def _call_hook(

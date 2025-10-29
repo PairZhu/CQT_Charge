@@ -47,7 +47,7 @@ class ChargeClient:
             resp = await response.json()
 
         data = resp.get("data", [])
-        return {item["stationName"]: item["id"] for item in data}
+        return {item["stationName"]: item for item in data}
 
     async def close(self):
         if self.session:
