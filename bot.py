@@ -123,9 +123,7 @@ class ChargeRobot:
         async def hook(data: list):
             nonlocal subscriber_data
             station_name = subscriber_data.station_name
-            current_free_counter = len(
-                list(filter(lambda x: x["showStatusString"] == "空闲", data))
-            )
+            current_free_counter = data["freePileCount"]
             prev_free_counter = subscriber_data.latest_free_count
             subscriber_data.latest_free_count = current_free_counter
 
