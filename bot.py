@@ -108,7 +108,7 @@ class ChargeRobot:
         if station_name not in self.listener.stations:
             self.send_message(
                 user_id,
-                f"未找到充电桩 '{station_name}'，输入 '{self.CMD_PREFIX}{self.LIST_CMD}' 查看可用充电桩列表",
+                f"未找到充电桩 🚫『{station_name}』\n输入『{self.CMD_PREFIX}{self.LIST_CMD}』查看可用充电桩列表 ⚡",
             )
             return
 
@@ -117,7 +117,7 @@ class ChargeRobot:
             if echo:
                 self.send_message(
                     user_id,
-                    f"检测到您已订阅充电桩 '{station_name}'，已为您取消之前的订阅，正在为您重新添加新的订阅...",
+                    f"您已订阅过充电桩 🔁『{station_name}』\n已自动为您取消旧订阅并重新添加 ✅",
                 )
 
         async def hook(data: list):
@@ -132,19 +132,19 @@ class ChargeRobot:
                     subscriber_data.triggered = True
                     self.send_message(
                         user_id,
-                        f"充电桩 '{station_name}' 已有足够的空闲充电位！\n当前空闲充电位数量：{current_free_counter}",
+                        f"🔔 充电桩 『{station_name}』 已有足够的空闲充电位！\n当前空闲充电位数量：{current_free_counter} 🟢",
                     )
             else:
                 if current_free_counter != 0:
                     if current_free_counter != prev_free_counter:
                         self.send_message(
                             user_id,
-                            f"充电桩 '{station_name}' 空闲充电位数量发生变化！\n当前空闲充电位数量：{current_free_counter}\n输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} {station_name}' 结束订阅",
+                            f"📊 充电桩 『{station_name}』 空闲充电位数量发生变化！\n当前空闲充电位数量：{current_free_counter} 🟢\n输入『{self.CMD_PREFIX}{self.UNSUB_CMD} {station_name}』可结束订阅 ❌",
                         )
                 else:
                     self.send_message(
                         user_id,
-                        f"充电桩 '{station_name}' 充电位已满，本次订阅结束！\n如需继续订阅请重新添加",
+                        f"🔕 充电桩 『{station_name}』 已满，订阅结束！\n如需继续订阅请重新添加 🔁",
                     )
                     self.remove_subscriber(user_id, station_name, echo=False)
                     return True  # 结束订阅
@@ -154,7 +154,7 @@ class ChargeRobot:
             ):
                 self.send_message(
                     user_id,
-                    f"充电桩 '{station_name}' 订阅时长已到期，本次订阅结束！\n如需继续订阅请重新添加",
+                    f"⏰ 充电桩 『{station_name}』 订阅时长已到期，本次订阅结束！\n如需继续订阅请重新添加 🔁",
                 )
                 self.remove_subscriber(user_id, station_name, echo=False)
                 return True
@@ -167,7 +167,11 @@ class ChargeRobot:
         if echo:
             self.send_message(
                 user_id,
-                f"已为您添加充电桩 '{station_name}' 的订阅！\n当空闲充电位数量达到 {subscriber_data.threshold} 个时会通知您，并在空闲充电位数量变化时再次通知您，直到空闲充电位数量变为0。\n在 {subscriber_data.expire_in_minutes} 分钟后订阅将自动取消。\n输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} {station_name}' 可手动取消订阅",
+                f"✅ 已成功订阅充电桩『{station_name}』！\n\n"
+                f"🔔 当空闲充电位 ≥ {subscriber_data.threshold} 时会通知您\n"
+                f"📊 若空闲数量变化也会再次提醒\n"
+                f"⏰ 订阅将在 {subscriber_data.expire_in_minutes} 分钟后自动失效\n"
+                f"如需取消，请输入『{self.CMD_PREFIX}{self.UNSUB_CMD} {station_name}』 ❌",
             )
 
     def remove_subscriber(self, user_id: int, station_name: str, echo: bool = True):
@@ -175,7 +179,7 @@ class ChargeRobot:
             if echo:
                 self.send_message(
                     user_id,
-                    "您当前没有任何充电桩订阅！",
+                    "⚠️ 您当前没有任何充电桩订阅",
                 )
             return
         if station_name in self.user_data[user_id]:
@@ -186,12 +190,12 @@ class ChargeRobot:
             if echo:
                 self.send_message(
                     user_id,
-                    f"已为您取消充电桩 '{station_name}' 的订阅！",
+                    f"✅ 已取消充电桩『{station_name}』的订阅",
                 )
         elif echo:
             self.send_message(
                 user_id,
-                f"您当前没有订阅充电桩 '{station_name}' ！",
+                f"⚠️ 您当前未订阅充电桩『{station_name}』",
             )
         if not self.user_data[user_id]:
             del self.user_data[user_id]
@@ -200,7 +204,7 @@ class ChargeRobot:
         if user_id not in self.user_data:
             self.send_message(
                 user_id,
-                "您当前没有任何充电桩订阅！",
+                "⚠️ 您当前没有任何充电桩订阅",
             )
             return
         user_listening_stations = list(self.user_data[user_id].keys())
@@ -208,7 +212,8 @@ class ChargeRobot:
             self.remove_subscriber(user_id, station_name, echo=False)
         self.send_message(
             user_id,
-            f"已为您取消所有充电桩订阅：{', '.join(user_listening_stations)}",
+            "🧹 已取消以下所有充电桩订阅：\n"
+            + "\n".join(f"- {name}" for name in user_listening_stations),
         )
 
     def list_stations(self, user_id: int):
@@ -216,34 +221,53 @@ class ChargeRobot:
         if not stations:
             self.send_message(
                 user_id,
-                "当前没有可用的充电桩！可能是网络问题或接口变更，请联系管理员。",
+                "🚨 当前没有可用的充电桩！可能是网络问题或接口变更，请联系管理员。",
             )
             return
-        msg = "当前可用的充电桩列表：\n" + "\n".join(f"- {name}" for name in stations)
-        self.send_message(user_id, msg)
+
+        async def _get_notify_station_status():
+            station_status = await self.listener.get_station_status()
+            msg = "⚡ 当前可用的充电桩列表：\n——————————\n"
+            for station_info in station_status.values():
+                if station_info["freePileCount"] > 0:
+                    status_emoji = "🟢"
+                else:
+                    status_emoji = "🔴"
+                # 1代表充电柜，2代表充电桩
+                if station_info["stationDeviceType"] == 1:
+                    logo_emoji = "🔋"
+                else:
+                    logo_emoji = "🔌"
+                msg += f"{status_emoji} {logo_emoji} {station_info['stationName']} (空闲 {station_info['freePileCount']})\n"
+            msg += "——————————\n⚙️ 提示： 🔋 代表充电柜，🔌 代表充电桩；🟢 代表有空闲，🔴 代表无空闲。"
+            self.send_message(user_id, msg)
+
+        asyncio.create_task(_get_notify_station_status())
 
     def list_subscriptions(self, user_id: int):
         if user_id not in self.user_data or not self.user_data[user_id]:
             self.send_message(
                 user_id,
-                "您当前没有任何充电桩订阅！",
+                "⚠️ 您当前没有任何充电桩订阅！",
             )
             return
-        msg = "您当前订阅的充电桩列表：\n" + "\n".join(
-            f"- {data.station_name} (阈值: {data.threshold}, 剩余: {max(0, int((data.created_at + data.expire_in_minutes * 60 - asyncio.get_event_loop().time()) / 60))} 分钟)"
+        msg = "📋 您当前订阅的充电桩列表：\n" + "\n".join(
+            f"• {data.station_name} ｜阈值：{data.threshold} ｜剩余：{max(0, int((data.created_at + data.expire_in_minutes * 60 - asyncio.get_event_loop().time()) / 60))} 分钟"
             for data in self.user_data[user_id].values()
         )
         self.send_message(user_id, msg)
 
     def help(self, user_id: int):
         msg = (
-            "充电桩订阅机器人使用帮助：\n"
-            f"- 输入 '{self.CMD_PREFIX}{self.LIST_CMD}' 查看可用充电桩列表\n"
-            f"- 输入 '{self.CMD_PREFIX}{self.PS_CMD}' 查看当前已订阅的充电桩列表\n"
-            f"- 输入 '{self.CMD_PREFIX}{self.SUB_CMD} <充电桩名称> [持续时间(单位：分钟，默认24小时)] [空闲数量阈值(默认1)]' 添加充电桩订阅，例如：'{self.CMD_PREFIX}{self.SUB_CMD} 充电桩A 60 2' 表示订阅'充电桩A'，当空闲数量达到2个时通知我，订阅持续时间为60分钟\n"
-            f"- 输入 '{self.CMD_PREFIX}{self.UNSUB_CMD} <充电桩名称>' 取消充电桩订阅，例如：'{self.CMD_PREFIX}{self.UNSUB_CMD} 充电桩A'\n"
-            f"- 输入 '{self.CMD_PREFIX}{self.CLEAR_CMD}' 取消所有充电桩订阅\n"
-            f"- 输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看本帮助信息\n"
+            "🤖 充电桩订阅机器人使用指南：\n"
+            "======================\n"
+            f"⚡ 『{self.CMD_PREFIX}{self.LIST_CMD}』查看可用充电桩列表\n"
+            f"📋 『{self.CMD_PREFIX}{self.PS_CMD}』查看当前已订阅的充电桩列表\n"
+            f"➕ 『{self.CMD_PREFIX}{self.SUB_CMD} <充电桩名> [持续时间(分钟, 默认1440)] [空闲数量阈值(默认1)]』添加充电桩订阅\n"
+            f"  例：『{self.CMD_PREFIX}{self.SUB_CMD} 充电桩A 60 2』表示订阅『充电桩A』，当空闲数量达到2个时通知我，订阅持续时间为60分钟\n"
+            f"➖ 『{self.CMD_PREFIX}{self.UNSUB_CMD} <充电桩名>』取消充电桩订阅\n"
+            f"🧹 『{self.CMD_PREFIX}{self.CLEAR_CMD}』取消所有充电桩订阅\n"
+            f"💡 『{self.CMD_PREFIX}{self.HELP_CMD}』查看帮助说明\n"
         )
         self.send_message(user_id, msg)
 
@@ -266,7 +290,7 @@ class ChargeRobot:
                 if not station_name:
                     self.send_message(
                         user_id,
-                        f"请提供充电桩名称！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
+                        f"⚠️ 请提供充电桩名称！\n输入『{self.CMD_PREFIX}{self.HELP_CMD}』查看使用帮助",
                     )
                     return
                 try:
@@ -276,13 +300,13 @@ class ChargeRobot:
                 except ValueError:
                     self.send_message(
                         user_id,
-                        f"持续时间参数必须是整数，单位为分钟！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
+                        f"⚠️ 持续时间参数必须是整数，单位为分钟！\n输入『{self.CMD_PREFIX}{self.HELP_CMD}』查看使用帮助",
                     )
                     return
                 if not (1 <= expire_in_minutes <= self.MAX_EXPIRE_MINUTES):
                     self.send_message(
                         user_id,
-                        f"持续时间必须在 1 到 {self.MAX_EXPIRE_MINUTES} 分钟之间！",
+                        f"⚠️ 持续时间必须在 1 到 {self.MAX_EXPIRE_MINUTES} 分钟之间！\n输入『{self.CMD_PREFIX}{self.HELP_CMD}』查看使用帮助",
                     )
                     return
                 try:
@@ -290,13 +314,13 @@ class ChargeRobot:
                 except ValueError:
                     self.send_message(
                         user_id,
-                        f"空闲数量阈值参数必须是整数！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
+                        f"⚠️ 空闲数量阈值参数必须是整数！\n输入『{self.CMD_PREFIX}{self.HELP_CMD}』查看使用帮助",
                     )
                     return
                 if not (1 <= threshold <= self.MAX_THRESHOLD):
                     self.send_message(
                         user_id,
-                        f"空闲数量阈值必须在 1 到 {self.MAX_THRESHOLD} 之间！",
+                        f"⚠️ 空闲数量阈值必须在 1 到 {self.MAX_THRESHOLD} 之间！\n输入『{self.CMD_PREFIX}{self.HELP_CMD}』查看使用帮助",
                     )
                     return
                 self.add_subscriber(
@@ -313,7 +337,7 @@ class ChargeRobot:
                 if not station_name:
                     self.send_message(
                         user_id,
-                        f"请提供充电桩名称！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
+                        f"⚠️ 请提供充电桩名称！\n输入『{self.CMD_PREFIX}{self.HELP_CMD}』查看使用帮助",
                     )
                     return
                 self.remove_subscriber(user_id, station_name)
@@ -324,5 +348,5 @@ class ChargeRobot:
             case _:
                 self.send_message(
                     user_id,
-                    f"未知命令 '{cmd}'！\n输入 '{self.CMD_PREFIX}{self.HELP_CMD}' 查看使用帮助",
+                    f"⚠️ 未知命令！\n输入『{self.CMD_PREFIX}{self.HELP_CMD}』查看使用帮助",
                 )
