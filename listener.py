@@ -13,9 +13,8 @@ class _StationRecord:
     time: float
 # 监听充电桩状态，允许注册回调函数订阅充电桩状态
 class ChargeListener:
-
-    POLL_INTERVAL = 30  # 轮询间隔，单位秒
-    EXPIRE_TIME = 60  # 数据过期时间，单位秒
+    POLL_INTERVAL = 15  # 轮询间隔，单位秒
+    EXPIRE_TIME = 30  # 数据过期时间，单位秒
 
     HOOK_CALLBACK_TYPE = (
         Callable[[list], asyncio.Future] | Callable[[list, list], asyncio.Future]
