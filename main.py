@@ -87,6 +87,10 @@ async def qq_bot_server():
                     continue
                 user_id: int = message_data["user_id"]
                 message: str = message_data["raw_message"]
+                robot_id = message_data["self_id"]
+                if message.strip() == f"[CQ:at,qq={robot_id}]":
+                    robot.use_preference_shortcut(user_id)
+                    continue
                 robot.handle_message(user_id, message)
 
         # 保存用户数据
