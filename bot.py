@@ -351,7 +351,7 @@ class ChargeRobot:
             )
             return
         msg = "📋 您当前订阅的充电桩列表：\n" + "\n".join(
-            f"• {data.station_name} ｜阈值：{data.threshold} ｜剩余：{max(0, int((data.created_at + data.expire_in_minutes * 60 - asyncio.get_event_loop().time()) / 60))} 分钟"
+            f"• {data.station_name} ｜阈值：{data.threshold} ｜剩余：{max(0, int((data.created_at + data.expire_in_minutes * 60 - time.time()) / 60))} 分钟"
             for data in self.user_data[user_id].values()
         )
         self.send_message(user_id, msg)
