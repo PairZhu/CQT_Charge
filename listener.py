@@ -149,9 +149,7 @@ class ChargeListener:
                 # 并发调用所有回调函数
                 for station_id, hooks in self.hooks.items():
                     if station_id not in data:
-                        warn_msg = (
-                            f"Station ID {station_id} not found in refreshed data."
-                        )
+                        warn_msg = f"Station ID {station_id} not found in refreshed data: {data.keys()}"
                         logger.warning(warn_msg)
                         if self.on_warning:
                             self.on_warning(warn_msg)
